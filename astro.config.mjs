@@ -3,5 +3,5 @@ import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://raana-kaname.github.io",
+  site: "https://raana-dev.github.io",
 });
