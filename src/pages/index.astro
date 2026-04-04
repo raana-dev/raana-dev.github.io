@@ -1,11 +1,91 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+	<div class="art-bg" aria-hidden="true">
+		<div class="mist-layer" id="mist-layer"></div>
+	</div>
+	<main class="content-shell">
+		<h1>RaanaQwQ</h1>
+	</main>
+
+	<style is:global>
+		:root {
+			--base-white: #ffffff;
+		}
+
+		body {
+			background: var(--base-white);
+		}
+
+		.art-bg {
+			position: fixed;
+			inset: 0;
+			overflow: hidden;
+			pointer-events: none;
+			background: #d0ddd0;
+			isolation: isolate;
+			z-index: 0;
+		}
+
+		.mist-layer {
+			position: absolute;
+			inset: -16vmax;
+			will-change: transform;
+			transform: translate3d(0, 0, 0);
+		}
+
+		.glow {
+			position: absolute;
+			left: var(--x);
+			top: var(--y);
+			width: var(--size);
+			height: calc(var(--size) * var(--ratio));
+			border-radius: 50%;
+			filter: blur(var(--blur));
+			opacity: var(--opacity);
+			mix-blend-mode: multiply;
+			transform: translate3d(-50%, -50%, 0);
+			background:
+				radial-gradient(
+					closest-side circle at 50% 50%,
+					rgba(var(--rgb), 0.8) 0%,
+					rgba(var(--rgb), 0.74) 16%,
+					rgba(var(--rgb), 0.58) 34%,
+					rgba(var(--rgb), 0.28) 58%,
+					rgba(var(--rgb), 0.11) 76%,
+					rgba(var(--rgb), 0) 100%
+				);
+		}
+
+		.content-shell {
+			position: relative;
+			z-index: 1;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			pointer-events: none;
+		}
+
+		h1 {
+			margin: 0;
+			font-family: "Fraunces", "Times New Roman", serif;
+			font-weight: 400;
+			font-size: clamp(2rem, 4vw, 4rem);
+			letter-spacing: 0.08em;
+			color: rgba(24, 36, 24, 0.5);
+			/* text-transform: uppercase; */
+			mix-blend-mode: multiply;
+			user-select: none;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.glow {
+				transform: translate3d(-50%, -50%, 0);
+			}
+		}
+	</style>
+
+	<script type="module" src="/art-bg.js"></script>
 </Layout>
