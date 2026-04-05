@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-	<div class="art-bg" aria-hidden="true">
+	<div class="index_bg" aria-hidden="true">
 		<div class="mist-layer" id="mist-layer"></div>
 	</div>
 	<main class="content-shell">
@@ -15,14 +15,23 @@ import Layout from '../layouts/Layout.astro';
 			--base-white: #ffffff;
 			--base-raana: #77dd77;
 			--base-rannaywhite: #d0ddd0;
-			--base-rannayblack: #1c1f1c;
+			--base-rannayblack: #111f11;
+			--veil-opacity: 0.56;
+			--veil-saturate: 92%;
+			--grain-opacity: 0.28;
+			--grain-size-hi: 176px;
+			--grain-size-lo: 308px;
+			--grain-drift-duration: 16s;
+			--glow-sat: 104%;
+			--glow-core-alpha: 0.64;
+			--glow-halo-alpha: 0.32;
 		}
 
 		body {
 			background: var(--base-rannayblack);
 		}
 
-		.art-bg {
+		.index_bg {
 			position: fixed;
 			inset: 0;
 			overflow: hidden;
@@ -38,6 +47,7 @@ import Layout from '../layouts/Layout.astro';
 			will-change: transform;
 			transform: translate3d(0, 0, 0);
 			isolation: isolate;
+			contain: layout paint;
 		}
 
 		.mist-layer::before,
@@ -52,12 +62,12 @@ import Layout from '../layouts/Layout.astro';
 		.mist-layer::before {
 			background:
 				radial-gradient(
-					120% 95% at 18% 16%,
+					120% 95% at 20% 16%,
 					rgba(255, 255, 255, 0.12) 0%,
 					rgba(255, 255, 255, 0) 60%
 				),
 				radial-gradient(
-					110% 90% at 84% 78%,
+					110% 90% at 84% 70%,
 					rgba(255, 255, 255, 0.09) 0%,
 					rgba(255, 255, 255, 0) 62%
 				),
@@ -68,21 +78,39 @@ import Layout from '../layouts/Layout.astro';
 					rgba(188, 221, 188, 0.08) 100%
 				);
 			mix-blend-mode: screen;
-			filter: blur(22px) saturate(92%);
-			opacity: 0.6;
+			filter: blur(22px) saturate(var(--veil-saturate));
+			opacity: var(--veil-opacity);
 		}
 
 		/* Fine grain over the entire plane, kept subtle to avoid stealing focus. */
 		.mist-layer::after {
+			/* Grain is revealed only where mask is present; empty area stays transparent. */
 			background-image:
-				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='13' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
-				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.34' numOctaves='3' seed='29' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n2)'/%3E%3C/svg%3E");
-			background-size: 180px 180px, 320px 320px;
-			background-position: 0 0, 37px 59px;
+				linear-gradient(rgba(220, 246, 220, 0.92), rgba(220, 246, 220, 0.92)),
+				linear-gradient(rgba(58, 82, 58, 0.84), rgba(58, 82, 58, 0.84));
 			mix-blend-mode: soft-light;
-			filter: grayscale(100%) contrast(122%) brightness(104%);
-			opacity: 0.2;
-			animation: grain-shift 18s linear infinite;
+			opacity: var(--grain-opacity);
+			-webkit-mask-image:
+				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='m1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.98' numOctaves='2' seed='13' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3CfeFuncG type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3CfeFuncB type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23m1)'/%3E%3C/svg%3E"),
+				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='m2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.36' numOctaves='3' seed='29' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3CfeFuncG type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3CfeFuncB type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23m2)'/%3E%3C/svg%3E");
+			mask-image:
+				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='m1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.98' numOctaves='2' seed='13' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3CfeFuncG type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3CfeFuncB type='discrete' tableValues='0 0 0.1 0.32 0.62 0.9 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23m1)'/%3E%3C/svg%3E"),
+				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cfilter id='m2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.36' numOctaves='3' seed='29' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3CfeFuncG type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3CfeFuncB type='discrete' tableValues='0 0 0.08 0.24 0.5 0.8 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23m2)'/%3E%3C/svg%3E");
+			-webkit-mask-size:
+				var(--grain-size-hi) var(--grain-size-hi),
+				var(--grain-size-lo) var(--grain-size-lo);
+			mask-size:
+				var(--grain-size-hi) var(--grain-size-hi),
+				var(--grain-size-lo) var(--grain-size-lo);
+			-webkit-mask-position: 0 0, 37px 59px;
+			mask-position: 0 0, 37px 59px;
+			-webkit-mask-repeat: repeat, repeat;
+			mask-repeat: repeat, repeat;
+			-webkit-mask-mode: luminance, luminance;
+			mask-mode: luminance, luminance;
+			filter: saturate(108%) blur(0.18px);
+			will-change: transform;
+			animation: grain-shift var(--grain-drift-duration) linear infinite;
 		}
 
 		@keyframes grain-shift {
@@ -114,19 +142,19 @@ import Layout from '../layouts/Layout.astro';
 			width: var(--size);
 			height: calc(var(--size) * var(--ratio));
 			border-radius: 50%;
-			filter: blur(var(--blur));
+			filter: blur(var(--blur)) saturate(var(--glow-sat));
 			opacity: var(--opacity);
 			mix-blend-mode: multiply;
 			transform: translate3d(-50%, -50%, 0);
 			background:
 				radial-gradient(
 					circle at 50% 50%,
-					rgba(var(--rgb), 0.64) 0%,
+					rgba(var(--rgb), var(--glow-core-alpha)) 0%,
 					rgba(var(--rgb), 0) 100%
 				),
 				radial-gradient(
 					circle at 50% 50%,
-					rgba(var(--rgb), 0.32) 0%,
+					rgba(var(--rgb), var(--glow-halo-alpha)) 0%,
 					rgba(var(--rgb), 0) 100%
 				);
 		}
@@ -146,7 +174,7 @@ import Layout from '../layouts/Layout.astro';
 			font-weight: 400;
 			font-size: clamp(2.4rem, 6.4vw, 4.8rem);
 			letter-spacing: 0.08em;
-			color: rgba(192, 216, 192, 0.4321);
+			color: rgba(192, 216, 192, 0.5);
 			/* color: rgba(24, 36, 24, 0.5); */
 			/* text-transform: uppercase; */
 			mix-blend-mode: multiply;
@@ -164,5 +192,5 @@ import Layout from '../layouts/Layout.astro';
 		}
 	</style>
 
-	<script type="module" src="/art-bg.js"></script>
+	<script type="module" src="/index_bg.js"></script>
 </Layout>

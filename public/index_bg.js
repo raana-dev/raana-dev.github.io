@@ -41,15 +41,25 @@ if (layer) {
   let planeSide = 0;
   let viewportWidth = 0;
   let viewportHeight = 0;
+  let recomputeAmplitude = () => {};
+  let resizeFrame = 0;
+  const styleCache = new Map();
 
   const randomInRange = (min, max) => min + Math.random() * (max - min);
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const setStyleVar = (name, value) => {
+    if (styleCache.get(name) === value) {
+      return;
+    }
+    styleCache.set(name, value);
+    layer.style.setProperty(name, value);
+  };
 
   const updatePlaneBounds = () => {
     viewportWidth = window.innerWidth;
     viewportHeight = window.innerHeight;
     const maxViewportDimension = Math.max(viewportWidth, viewportHeight);
-    planeSide = maxViewportDimension * 1.2;
+    planeSide = maxViewportDimension * 1.5;
 
     layer.style.inset = "auto";
     layer.style.width = String(planeSide) + "px";
@@ -58,7 +68,67 @@ if (layer) {
     layer.style.top = String((viewportHeight - planeSide) * 0.5) + "px";
   };
 
-  updatePlaneBounds();
+  const applyDisplayTuning = () => {
+    const dpr = clamp(window.devicePixelRatio || 1, 1, 3);
+    const shortEdge = Math.min(window.innerWidth, window.innerHeight);
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const isMobileLike = isCoarsePointer || shortEdge < 860;
+
+    // Keep desktop baseline stable while lifting visibility on high-density displays.
+    const visibilityBoost = clamp(
+      (dpr - 1) * 0.32 + (isMobileLike ? 0.16 : 0),
+      0,
+      0.56,
+    );
+
+    const grainSizeHi = Math.round(176 * (1 + visibilityBoost * 0.88));
+    const grainSizeLo = Math.round(308 * (1 + visibilityBoost * 0.98));
+    const grainOpacity = clamp(0.28 + visibilityBoost * 0.12, 0.28, 0.35);
+    const grainDriftDuration = clamp(16 - visibilityBoost * 2.2, 13.5, 16);
+
+    const veilOpacity = clamp(0.56 + visibilityBoost * 0.05, 0.56, 0.62);
+    const veilSaturate = Math.round(96 + visibilityBoost * 12);
+
+    // Saturation compensation for dark valleys on high-density mobile displays.
+    const glowSaturation = Math.round(106 + visibilityBoost * 8);
+    const glowCoreAlpha = clamp(0.66 + visibilityBoost * 0.06, 0.66, 0.72);
+    const glowHaloAlpha = clamp(0.34 + visibilityBoost * 0.06, 0.34, 0.4);
+
+    setStyleVar("--grain-size-hi", String(grainSizeHi) + "px");
+    setStyleVar("--grain-size-lo", String(grainSizeLo) + "px");
+    setStyleVar("--grain-opacity", String(grainOpacity));
+    setStyleVar(
+      "--grain-drift-duration",
+      String(grainDriftDuration.toFixed(2)) + "s",
+    );
+
+    setStyleVar("--veil-opacity", String(veilOpacity));
+    setStyleVar("--veil-saturate", String(veilSaturate) + "%");
+
+    setStyleVar("--glow-sat", String(glowSaturation) + "%");
+    setStyleVar("--glow-core-alpha", String(glowCoreAlpha));
+    setStyleVar("--glow-halo-alpha", String(glowHaloAlpha));
+  };
+
+  const syncViewportState = () => {
+    updatePlaneBounds();
+    applyDisplayTuning();
+    recomputeAmplitude();
+  };
+
+  const scheduleViewportChange = () => {
+    if (resizeFrame !== 0) {
+      return;
+    }
+
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0;
+      syncViewportState();
+    });
+  };
+
+  syncViewportState();
+  window.addEventListener("resize", scheduleViewportChange, { passive: true });
 
   const sizeWeight = (size) => (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN);
 
@@ -308,15 +378,16 @@ if (layer) {
     let nextNoiseShiftAt =
       startAt + randomInRange(noiseShiftMinMs, noiseShiftMaxMs);
     const breathPhase = randomInRange(0, Math.PI * 2);
+    const amplitudeFactor = randomInRange(0.72, 0.86);
 
     let baseAmplitude = 0;
 
-    const recomputeAmplitude = () => {
+    recomputeAmplitude = () => {
       const margin = Math.max(
         24,
         (planeSide - Math.min(viewportWidth, viewportHeight)) * 0.5,
       );
-      baseAmplitude = margin * randomInRange(0.72, 0.86);
+      baseAmplitude = margin * amplitudeFactor;
     };
 
     recomputeAmplitude();
@@ -385,11 +456,6 @@ if (layer) {
         "px, 0)";
       requestAnimationFrame(tick);
     };
-
-    window.addEventListener("resize", () => {
-      updatePlaneBounds();
-      recomputeAmplitude();
-    });
 
     requestAnimationFrame(tick);
   }
